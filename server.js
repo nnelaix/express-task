@@ -1,6 +1,8 @@
 const express = require('express');
 const path = require('path');
 const hbs = require('express-handlebars');
+const multer  = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 
@@ -38,25 +40,26 @@ app.get('/history', (req, res) => {
   res.render('history');
 });
 
-app.use((req, res) => {
-  res.status(404).send('404 Not found');
-});
-
 app.get('/hello/:name', (req, res) => {
   res.render('hello', { layout: false, name: req.params.name });
 });
 
-app.post('/contact/send-message', (req, res) => {
+app.post('/contact/send-message', upload.single('fileName'), (req, res) => {
   const { author, sender, title, message } = req.body;
+  const image = (req.file)?req.file.originalname: null;
+  console.log(image);
 
-  if(author && sender && title && message) {
-    res.render('contact', { isSent: true });
+  if(author && sender && title && message && image) {
+    res.render('contact', { isSent: true, image });
   }
   else {
     res.render('contact', { isError: true });
   }
 });
 
+app.use((req, res) => {
+  res.status(404).send('404 Not found');
+});
 app.listen(8000, () => {
   console.log('Server is running on port: 8000');
 });
